@@ -37,7 +37,6 @@
 #define batteryCalFactor .0011804
 #define batteryLowVoltage 3.3
 
-
 struct sensorExist{
     bool bh1750;
     bool bmp085;
@@ -53,7 +52,31 @@ struct sensorStatus
   int lux;
   int ath;
   //int temperature;
-} Status ;
+};
+
+struct sensorData
+{
+  float temperatureC;
+  float windSpeed;
+  float windDirection;
+  //char windCardinalDirection[5];
+  float barometricPressure;
+  float BMEtemperature;
+  float humidity;
+  float UVIndex;
+  float lux;
+  float batteryVoltage;
+  int batteryADC;
+  unsigned int coreC;
+};
+
+// Global instantiation
+bool lowBattery = false;
+bool WiFiEnable = false;
+struct sensorStatus status;
+long rssi = 0;
+
+
 
 
 

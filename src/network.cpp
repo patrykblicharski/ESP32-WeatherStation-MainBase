@@ -3,6 +3,7 @@
 
 
 
+
 bool setup_wifi(char *siec, char *password) {
 
   delay(10);
@@ -30,7 +31,7 @@ bool setup_wifi(char *siec, char *password) {
   return true;
 }
 
-bool checkTransmission(int address, char name[])
+bool checkI2cTransmission(int address, char name[])
 {
     Wire.beginTransmission(address);
     bool bErr = Wire.endTransmission();
@@ -45,3 +46,4 @@ bool checkTransmission(int address, char name[])
         return false;
     }
 }
+ 
