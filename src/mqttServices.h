@@ -4,7 +4,7 @@
 #include <Arduino.h>
  #include <PubSubClient.h>
 
-void MQTTconnect(PubSubClient &mqttClient);
+bool MQTTconnect(PubSubClient &mqttClient);
 
 void MQTTSend(char *topicBuffer, char *payload, bool retain, PubSubClient &mqttClient);
 void MQTTPublish(const char topic[], char *value, bool retain, PubSubClient &mqttClient); //  MQTTPublishString

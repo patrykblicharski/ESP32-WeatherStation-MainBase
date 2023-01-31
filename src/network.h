@@ -2,11 +2,19 @@
 #define NETWORK_H
 
 #include <Arduino.h>
+#include <WiFiMulti.h>
+#include <esp_log.h>
 #include <WiFi.h>
 #include <Wire.h>
 
+#include <string>
+#include <vector>
 
+
+void scan_wifi();
 bool setup_wifi(char *siec, char *password);
-bool checkI2cTransmission(int address, char name[]);
+bool setup_multi_wifi(char (*ssid)[20], char(*passwd)[20]);
+
+
 
 #endif
