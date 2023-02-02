@@ -48,10 +48,10 @@ void scan_wifi()
   }
   Serial.println("");
 }
-
-bool setup_wifi(char *siec, char *password)
+//alternative version network connection
+/*bool setup_wifi(char *siec, char *password)
 {
-  /*Serial.print("\n#####################\n");
+  Serial.print("\n#####################\n");
   Serial.print("  ### NETWORK SETUP ###\n");
   Serial.println("#####################\n");
 
@@ -87,8 +87,10 @@ bool setup_wifi(char *siec, char *password)
   Serial.printf("[WIFI] MAC: %s", WiFi.BSSIDstr().c_str());
   Serial.printf("[WIFI] Channel: %d", WiFi.channel());
 
-  return true;*/
-}
+  return true;
+
+}*/
+
 
 bool setup_multi_wifi(char (*ssid)[20], char (*passwd)[20])
 {
