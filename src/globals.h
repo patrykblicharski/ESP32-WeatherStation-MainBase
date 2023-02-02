@@ -12,9 +12,10 @@
 
 // Timer for deepsleep
 #define uS_TO_S_FACTOR 1000000 /* Conversion factor for micro seconds to seconds */
-#define TIME_TO_SLEEP 600      // in use uS_TO_S_FACTOR*TIME_TO_SLEEP(in sec)
+#define TIME_TO_SLEEP 100      // in use uS_TO_S_FACTOR*TIME_TO_SLEEP(in sec)
 
 #define WDT_TIMEOUT 60 // watchdog timer
+void print_wakeup_reason();
 
 // Metric or Imperial measurements
 #define METRIC
@@ -36,5 +37,13 @@ bool lowBattery = false;
 bool WiFiEnable = false;
 
 long rssi = 0;
+
+static const char *Network_Wifi_Conn = "NETWORK_STATUS_CONN";
+static const char *uServer_Handlers = "NETWORK_uSERVER_HANDLER";
+static const char *I2c_Scanner = "I2C_SCANNER";
+static const char *Deep_Sleep = "ESP_DEEPSLEEP";
+static const char *Watch_dog = "ESP_WATCHDOG";
+static const char *Esp_parms = "ESP_SET_PARMS";
+static const char *Esp_get_parms = "ESP_GET_PARMS";
 
 #endif

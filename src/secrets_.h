@@ -15,5 +15,6 @@ const int daylightOffset_sec = 3600;
 
 // Set how often to wake and read sensors
 const int WakeIntervalUpdateSec = 5 * 60;
-
+static const char *Wifi1ssid;
+static const char *Wifi1pass;
 #endif

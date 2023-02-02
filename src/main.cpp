@@ -16,9 +16,12 @@ sensorData env;
 #include "globals.h" //Global variables, defines
 WiFiMulti wifiMulti;
 
-static const char *Network_Wifi_Conn = "NETWORK_STATUS_CONN";
-static const char *uServer_Handlers = "NETWORK_uSERVER_HANDLER";
-static const char *I2c_Scanner = "I2C_SCANNER";
+#include <soc/soc.h>
+#include <soc/rtc_cntl_reg.h>
+#include <esp_task_wdt.h>
+#include <esp_system.h>
+#include <driver/rtc_io.h>
+#include <esp_sleep.h>
 
 // ################################
 //         MQTT
@@ -35,14 +38,46 @@ byte bErrorAll = 0;
 
 void setup()
 {
-  // Wire.begin();
-
-  esp_log_level_set("*", ESP_LOG_DEBUG);
-  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
-  Wire.begin();
-  Serial.begin(115200);
   byte error, address;
   int nDevices;
+
+  Serial.begin(115200);
+  Serial.setDebugOutput(true); // Set debug output to Serial
+
+  esp_log_level_set("*", ESP_LOG_DEBUG);
+
+  Wire.begin();
+
+  Serial.print("\n#################\n");
+  Serial.print("  ## WATCHDOG ##\n");
+  Serial.println("#################\n");
+
+print_wakeup_reason();
+
+//Wake up timer set
+  if (esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR) == ESP_OK)
+    ESP_LOGI(Deep_Sleep, "Deep sleep timer set to %i sec", TIME_TO_SLEEP);
+  else
+    ESP_LOGE(Deep_Sleep, "Deep sleep set time ERROR");
+
+//INIT Watchdog
+  if (esp_task_wdt_init(WDT_TIMEOUT, true) == ESP_OK)
+  {
+    esp_task_wdt_add(NULL); // add current thread to WDT watch
+    ESP_LOGI(Esp_parms, "ESP32 watchdog set restart after %i sec on panic", TIME_TO_SLEEP);
+  }
+  else
+    ESP_LOGE(Esp_parms, "ESP32 watchdog set panic ERROR");
+
+//Set CPU frequency
+  if (setCpuFrequencyMhz(80))
+    ESP_LOGI(Esp_parms, "CPU set to:80Mhz");
+  else
+    ESP_LOGE(Esp_parms, "CPU not set to 80Mhz back to default 240Mhz");
+
+
+
+
 
   Serial.print("\n#################\n");
   Serial.print("  ## I2C SCANNER ##\n");
@@ -86,7 +121,7 @@ void setup()
   Serial.print("  ## MULTIWIFI SETUP ##\n");
   Serial.println("#####################\n");
 
-  wifiMulti.addAP("x", "x");
+  wifiMulti.addAP(Wifi1ssid, Wifi1pass); //temporary
   wifiMulti.addAP("x", "x");
   wifiMulti.addAP("x", "x");
 
@@ -102,12 +137,6 @@ void setup()
     ESP_LOGI(Network_Wifi_Conn, "MAC: %s", WiFi.BSSIDstr().c_str());
     ESP_LOGI(Network_Wifi_Conn, "Channel: %d \n", WiFi.channel());
 
-    // bool wifiStatus = setup_wifi(ssid, pass);
-
-    // MQTTPublish("temat", "test", true,mqttClient);
-    // //sensorCheck();
-    // Wire.begin();
-    // delay(200);
     Serial.print("\n####################\n");
     Serial.print("# uSERVER HANDLERS #\n");
     Serial.println("####################\n");
@@ -121,7 +150,6 @@ void setup()
     ESP_LOGI(uServer_Handlers, "OutputLog HTTP server begin on port: %i", HttpLogServerPort);
 
     sensorCheck();
-    // testsensor();
   }
 }
 
@@ -144,9 +172,39 @@ void loop()
     MQTTPublish("bADC", env.batteryADC, false, mqttClient);
     MQTTPublish("bVOLT", env.batteryVoltage, false, mqttClient);
 
-    Serial.printf(" %i ", timer);
+    // Serial.printf(" %i ", timer);
   }
-  delay(5000);
+  delay(1000);
+
+  ESP_LOGI(Deep_Sleep, "Deep sleep start in 5 sec");
+  for (int i = 5; i >= 0; i--)
+  {
+    Serial.println(i);
+    delay(1000);
+  }
+
+  ESP_LOGI(Deep_Sleep, "Starting Deep sleep!");
 
   esp_deep_sleep_start(); // Uśpienie układu
+}
+
+void print_wakeup_reason()
+{
+  esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
+
+  switch (wakeup_reason)
+  {
+  case ESP_SLEEP_WAKEUP_EXT0: ESP_LOGI(Esp_get_parms, "Wakeup caused by external signal using RTC_IO");
+    break;
+  case ESP_SLEEP_WAKEUP_EXT1: ESP_LOGI(Esp_get_parms, "Wakeup caused by external signal using RTC_CNTL");
+    break;
+  case ESP_SLEEP_WAKEUP_TIMER: ESP_LOGI(Esp_get_parms, "Wakeup caused by Deepsleep timer");
+    break;
+  case ESP_SLEEP_WAKEUP_TOUCHPAD: ESP_LOGI(Esp_get_parms, "Wakeup caused by touchpad");
+    break;
+  case ESP_SLEEP_WAKEUP_ULP: ESP_LOGI(Esp_get_parms, "Wakeup caused by ULP program");
+    break;
+  default: ESP_LOGI(Esp_get_parms, "Wakeup was not caused by deep sleep");
+    break;
+  }
 }
