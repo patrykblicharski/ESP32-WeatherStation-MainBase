@@ -43,6 +43,7 @@ struct sensorData
   float lux;
   float batteryVoltage;
   int batteryADC;
+  bool lowBattery;
   unsigned int coreC;
 };
 

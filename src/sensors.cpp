@@ -104,7 +104,7 @@ void sensorCheck(void)
     }
     else
     {
-        Serial.println("\n!!!!!!!!!!!!!");
+        Serial.print("!!!!!!!!!!!!!");
         ESP_LOGE(SENSOR_INITS_TAG, "# BH1750 LUX # status.exist=%i status.begin()=%i #", exist.lux, status.lux);
     }
 }
@@ -119,14 +119,14 @@ bool checkI2cTransmission(int address, bool *setStatus)
     byte bErr = Wire.endTransmission();
     if (bErr == 0)
     {
-        ESP_LOGI(SENSOR_I2C_CONN_TAG, "^^ Address:%i  -> OK", exist.lux, status.lux);
+        ESP_LOGI(SENSOR_I2C_CONN_TAG, "^^ Address:%i  -> OK", address);
         *setStatus = true;
         return true;
     }
     else
     {
-        Serial.println("!!!!!!!!!!!!!");
-        ESP_LOGE(SENSOR_I2C_CONN_TAG, " Address:%i  -> ERROR\n", exist.lux, status.lux);
+        Serial.print("!!!!!!!!!!!!!");
+        ESP_LOGE(SENSOR_I2C_CONN_TAG, " Address:%i  -> ERROR\n", address);
         *setStatus = false;
         return false;
     }
@@ -140,8 +140,13 @@ void checkBatteryVoltage(struct sensorData *environment)
 
     ESP_LOGI(SENSOR_BATTERY_CTL, "Battery probing");
     environment->batteryADC = analogRead(BATTERY_PIN);
-    environment->batteryVoltage = environment->batteryADC * batteryCalFactor;
+    environment->batteryVoltage = environment->batteryADC * 0.0010773;
     ESP_LOGI(SENSOR_BATTERY_CTL, "Battery: ADC:%i Voltage:%f", environment->batteryADC, environment->batteryVoltage);
+    if (environment->batteryVoltage <= 3.200)
+    {
+        
+    }
+
 }
 
 void readSensors(struct sensorData *environment)
