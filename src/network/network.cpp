@@ -92,10 +92,10 @@ void scan_wifi()
 }*/
 
 
-bool setup_multi_wifi(char (*ssid)[20], char (*passwd)[20])
-{
+//bool setup_multi_wifi(char (*ssid)[20], char (*passwd)[20])
+////{
   // std::vector<std::string> aa{"Blachowiczowie_RPT","najpierwuderzglowa!"};
 
   // wifiMulti.addAP();
   // return true;
-}
+//}

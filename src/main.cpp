@@ -5,7 +5,7 @@
 #include <WiFiClient.h>
 #include <WebServer.h>
 
-#include "network/network.h"      //wifi control
+#include "network/network.h"   //wifi control
 #include "mqtt/mqttServices.h" //mqtt functions
 #include "leds/leds_watchdog_helper.h"
 #include "sensors/sensors.h"
@@ -38,7 +38,7 @@ byte bErrorAll = 0;
 
 void setup()
 {
- digitalWrite(19,HIGH);
+  digitalWrite(19, HIGH);
   byte error, address;
   int nDevices;
 
@@ -132,14 +132,18 @@ void setup()
   Serial.print("\n#####################\n");
   Serial.print("  ## MULTIWIFI SETUP ##\n");
   Serial.println("#####################\n");
-  led_watchdog_progress_blink(exec_stage::WIFI_TRY);
+
   wifiMulti.addAP(Wifi1ssid, Wifi1pass); // temporary
   wifiMulti.addAP(Wifi2ssid, Wifi1pass);
   // wifiMulti.addAP("x", "x");
 
   Serial.print("\n####################\n");
   Serial.print("## MULTIWIFI SCAN ##\n");
+
   Serial.println("####################\n");
+
+  led_watchdog_progress_blink(exec_stage::WIFI_TRY);
+
   if (wifiMulti.run() == WL_CONNECTED)
   {
     Serial.println("");
@@ -148,7 +152,9 @@ void setup()
     ESP_LOGI(Network_Wifi_Conn, "IP: %s", WiFi.localIP().toString().c_str());
     ESP_LOGI(Network_Wifi_Conn, "MAC: %s", WiFi.BSSIDstr().c_str());
     ESP_LOGI(Network_Wifi_Conn, "Channel: %d \n", WiFi.channel());
+
     led_watchdog_progress_blink(exec_stage::WIFI_CONNECTED);
+
     Serial.print("\n####################\n");
     Serial.print("# uSERVER HANDLERS #\n");
     Serial.println("####################\n");
@@ -160,9 +166,14 @@ void setup()
     ESP_LOGI(uServer_Handlers, "ElegantOTA HTTP server started");
     server.begin();
     ESP_LOGI(uServer_Handlers, "OutputLog HTTP server begin on port: %i", HttpLogServerPort);
- 
+
     sensorCheck(); // to return
-    led_watchdog_progress_blink(exec_stage::I2COK);
+  }
+  else
+  {
+    led_watchdog_progress_blink(exec_stage::WIFI_ERROR);
+    ESP_LOGE(Network_Wifi_Conn, "!!!!!!!!!!!!\n\n\nWIFI problem\n\n\n!!!!!!!!!!!!!!!!!");
+    ESP.restart();
   }
 }
 
@@ -172,21 +183,36 @@ void loop()
   readSensors(&env);         // Odczyt sensorów
   checkBatteryVoltage(&env); // Odczyt napięcia
 
+  if (env.batteryVoltage <= batteryLowVoltage)
+  {
+    env.lowBattery = 1;
+    ESP_LOGE(Battery, "BATTERY LOW: Measured:%fV !!!!!!!!!!!!!!!", env.batteryVoltage);
+    {
+      if (esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP_LOW_BATTERY * uS_TO_S_FACTOR) == ESP_OK)
+        ESP_LOGE(Battery, "BATTERY LOW:DEEP SLEEP SET TO %fsec", TIME_TO_SLEEP_LOW_BATTERY);
+    }
+  }
+  else
+  {
+    env.lowBattery = 0;
+  }
+
   if (MQTTconnect(mqttClient) == true) // Wysłanie danych przez protokół MQTT
   {
- 
+
     float tempC = env.temperatureC;
     MQTTPublish("TempC", env.temperatureC, false, mqttClient);
     MQTTPublish("Hum", env.humidity, false, mqttClient);
     MQTTPublish("TempHum", env.temphum, false, mqttClient);
     MQTTPublish("HeatIndex", env.HeatIndex, false, mqttClient);
-    MQTTPublish("Preasure", env.barometricPressure, false, mqttClient);
+    MQTTPublish("Preasure", env.PressureSeaLevel, false, mqttClient);
     MQTTPublish("BME", env.BMEtemperature, false, mqttClient);
     MQTTPublish("Lux", env.lux, false, mqttClient);
-    MQTTPublish("bADC", env.batteryADC, false, mqttClient);
-    MQTTPublish("bVOLT", env.batteryVoltage, false, mqttClient);
+    MQTTPublish("BatteryADC", env.batteryADC, false, mqttClient);
+    MQTTPublish("BatteryVoltage", env.batteryVoltage, false, mqttClient);
+    MQTTPublish("LowBattery", env.lowBattery, false, mqttClient);
+
     led_watchdog_progress_blink(exec_stage::SENT);
- 
   }
   delay(1000);
 
@@ -195,15 +221,14 @@ void loop()
   {
     led_watchdog_progress_blink(exec_stage::DEEP);
     Serial.println(i);
- 
   }
 
   ESP_LOGI(Deep_Sleep, "Starting Deep sleep!");
- 
+
   esp_deep_sleep_start(); // Uśpienie układu
 }
-//##################################################################################################################
-//##################################################################################################################
+// ##################################################################################################################
+// ##################################################################################################################
 void print_wakeup_reason()
 {
   esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
