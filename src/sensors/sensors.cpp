@@ -59,34 +59,21 @@ float computeHeatIndex(float temperature, float percentHumidity,
     return isFahrenheit ? hi : convertFtoC(hi);
 }
 
-/* void testsensor(void)
-{
-    if (checkI2cTransmission(AHT20X_ADDRESS, &exist.ath))
-    {
-        Wire.end();
-        status.ath = aht.begin();
-        Serial.println(status.ath);
-        Serial.println(exist.ath);
-
-        sensors_event_t humidity, temp;
-        aht.getEvent(&humidity, &temp);
-    }
-}*/
-
 void sensorCheck(void)
 {
 
-    if (checkI2cTransmission(BMP180_ADDRESS, &exist.bmp))
+    if ((BMP180Enable) && checkI2cTransmission(BMP180_ADDRESS, &exist.bmp))
     {
         status.bmp = bmp.begin();
 
-        ESP_LOGI(SENSOR_INITS_TAG, "# BMP180 # status.exist=%i status.begin()=%i #", exist.bmp, status.bmp);
+        ESP_LOGI(SENSOR_INITS_TAG, "# BME280 # status.exist=%i status.begin()=%i #", exist.bmp, status.bmp);
     }
     else
     {
-        ESP_LOGE(SENSOR_INITS_TAG, "# BMP180 # status.exist=%i status.begin()=%i #", exist.bmp, status.bmp);
+        ESP_LOGE(SENSOR_INITS_TAG, "# BME280 # status.exist=%i status.begin()=%i #", exist.bmp, status.bmp);
     }
-    if (checkI2cTransmission(AHT20X_ADDRESS, &exist.ath))
+
+    if ((AHTX0Enable) && checkI2cTransmission(AHT20X_ADDRESS, &exist.ath))
     {
         status.ath = aht.begin();
         ESP_LOGI(SENSOR_INITS_TAG, "# AHT20X # status.exist=%i status.begin()=%i #", exist.ath, status.ath);
@@ -97,7 +84,8 @@ void sensorCheck(void)
     {
         ESP_LOGE(SENSOR_INITS_TAG, "# AHT20X # status.exist=%i status.begin()=%i #", exist.ath, status.ath);
     }
-    if (checkI2cTransmission(LUX_ADDRESS, &exist.lux))
+
+    if ((BH1750Enable) && checkI2cTransmission(BH1750_ADDRESS, &exist.lux))
     {
         status.lux = bh_lux.begin();
         ESP_LOGI(SENSOR_INITS_TAG, "# BH1750 LUX # status.exist=%i status.begin()=%i #", exist.lux, status.lux);
@@ -142,11 +130,10 @@ void checkBatteryVoltage(struct sensorData *environment)
     environment->batteryADC = analogRead(BATTERY_PIN);
     environment->batteryVoltage = environment->batteryADC * 0.0010773;
     ESP_LOGI(SENSOR_BATTERY_CTL, "Battery: ADC:%i Voltage:%f", environment->batteryADC, environment->batteryVoltage);
-    if (environment->batteryVoltage <= 3.200)
-    {
-        
-    }
+}
 
+void readBMP180(struct sensorData *measure)
+{
 }
 
 void readSensors(struct sensorData *environment)

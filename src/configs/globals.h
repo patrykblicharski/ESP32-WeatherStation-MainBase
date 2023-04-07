@@ -1,11 +1,7 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
  
-#define ETH_LED_PIN 32
-#define ETH_LED2_PIN 17
 
-#define RAIN_HALL_PIN 35
-#define WIND_HALL_PIN 25
 
 // Timer for deepsleep
 #define uS_TO_S_FACTOR 1000000 /* Conversion factor for micro seconds to seconds */
@@ -16,20 +12,11 @@
 void print_wakeup_reason();
 
 
-// Metric or Imperial measurements
+ 
 #define METRIC
-
-// Sensor enable
-#define BH1750Enable
-#define BMP085Enable
-#define AHTX0Enable
 
 #define RSSI_INVALID -9999
 
-// Battery calibration
-// batteryCalFactor = measured battery voltage/ADC reading //.0011804
-#define batteryCalFactor .0010773
-#define batteryLowVoltage 3.3
 
 // Global instantiation
 bool lowBattery = false;

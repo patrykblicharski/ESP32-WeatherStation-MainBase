@@ -1,16 +1,12 @@
 #ifndef SENSORS_H
 #define SENSORS_H
-#define BH1750Enable
+
 #include <Arduino.h>
 #include <BH1750.h>
 #include <Adafruit_BMP085.h>
 #include <Adafruit_AHTX0.h>
-#define LUX_ADDRESS 35
-#define BMP180_ADDRESS 119
-#define AHT20X_ADDRESS 56
-#define BATTERY_PIN 33
-#define batteryCalFactor .0011804
-#define batteryLowVoltage 3.3
+#include "configs/sensors_conf.h"
+
 
 struct sensorExist
 {
@@ -46,7 +42,6 @@ struct sensorData
   bool lowBattery;
   unsigned int coreC;
 };
-
 
 bool checkI2cTransmission(int address, bool *setStatus);
 void sensorCheck(void);
