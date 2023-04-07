@@ -1,7 +1,6 @@
 
 #include "leds_watchdog_helper.h"
 
-
 void led_watchdog_progress_blink(exec_stage stage)
 {
     switch (stage)
@@ -21,36 +20,15 @@ void led_watchdog_progress_blink(exec_stage stage)
         LedState(LED_BLUE, true);
         LedState(LED_GREEN, false);
         delay(1000);
-        LedBlink2(LED_GREEN, 4, false, 500);
         break;
-    case I2COK:
-        LedState(LED_BLUE, false);
-        LedState(LED_GREEN, false);
-        delay(1000);
-        LedState(LED_GREEN, true);
-        break;
-    case I2CERR:
-        LedState(LED_BLUE, false);
-        LedState(LED_GREEN, false);
-        delay(1000);
-        for (int i = 0; i < 5; i++)
-        {
-            delay(1000);
-            LedState(LED_BLUE, false);
-            LedState(LED_GREEN, true);
-            delay(1000);
-            LedState(LED_BLUE, true);
-            LedState(LED_GREEN, false);
-        }
-        LedState(LED_BLUE, false);
-        LedState(LED_GREEN, false);
-        delay(1000);
+    case WIFI_ERROR:
+        LedBlink2(LED_BLUE,LED_GREEN,15,200,1);
         break;
     case SENT:
         LedFade(LED_GREEN);
         break;
     case DEEP:
-        LedFade(LED_BLUE);
+
         LedFade(LED_BLUE, LED_GREEN);
         break;
     default:

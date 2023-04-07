@@ -72,7 +72,7 @@ void LedBlink(int pin, int times, int tdelay)
     }
 }
 
-void LedBlink2(int pin, int times, int endstate, int tdelay)
+void LedBlink(int pin, int times, int endstate, int tdelay)
 {
     for (int i = 0; i < times; i++)
     {
@@ -83,4 +83,20 @@ void LedBlink2(int pin, int times, int endstate, int tdelay)
     }
     delay(500);
     digitalWrite(pin, endstate);
+}
+
+void LedBlink2(int pin1, int pin2, int times, int tdelay, bool endstate)
+{
+    for (int i = 0; i < times; i++)
+    {
+        analogWrite(pin1, 255);
+        analogWrite(pin2, 255);
+        delay(tdelay);
+        analogWrite(pin1, 0);
+        analogWrite(pin2, 0);
+        delay(tdelay);
+    }
+    delay(500);
+    digitalWrite(pin1, endstate);
+    digitalWrite(pin2, endstate);
 }

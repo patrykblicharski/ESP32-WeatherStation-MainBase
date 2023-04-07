@@ -11,5 +11,7 @@ void LedFade(int pin1, int pin2);
 void LedBlink(int pin);
 
 void LedBlink(int pin, int times, int tdelay = 300);
-void LedBlink2(int pin, int times, int endstate, int tdelay = 300);
+void LedBlink(int pin, int times, int endstate, int tdelay = 300);
+void LedBlink2(int pin1, int pin2, int times, int tdelay, bool endstate);
+
 #endif

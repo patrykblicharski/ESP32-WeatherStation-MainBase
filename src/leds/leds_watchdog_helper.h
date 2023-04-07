@@ -7,8 +7,7 @@ enum exec_stage
     I2CSCAN,
     WIFI_TRY,
     WIFI_CONNECTED,
-    I2COK,
-    I2CERR,
+    WIFI_ERROR,
     SENT,
     DEEP
 };
