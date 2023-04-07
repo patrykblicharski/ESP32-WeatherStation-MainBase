@@ -6,3 +6,5 @@
 src/secrets.h
 src/mqttAuth.h
 src/Untitled-1.txt
+
+src/mqtt/mqttAuth.h
