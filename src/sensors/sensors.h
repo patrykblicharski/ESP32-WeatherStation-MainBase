@@ -7,7 +7,7 @@
 #include <Adafruit_AHTX0.h>
 #include "configs/sensors_conf.h"
 
-
+#include <SFE_BMP180.h>
 struct sensorExist
 {
   bool wire;
@@ -26,20 +26,21 @@ struct sensorStatus
 struct sensorData
 {
   float temperatureC;
+  float humidity;
   char temphum[30];
   // float windSpeed;
   // float windDirection;
   // char windCardinalDirection[5];
   float HeatIndex;
-  float barometricPressure;
-  float barometricSeaLevelPressure;
+  float Pressure;
+  float PressureSeaLevel;
   float BMEtemperature;
-  float humidity;
+  float RelAltitude;
   // float UVIndex;
   float lux;
   float batteryVoltage;
   int batteryADC;
-  bool lowBattery;
+  int lowBattery;
   unsigned int coreC;
 };
 
@@ -54,4 +55,11 @@ float convertCtoF(float c);
 float computeHeatIndex(float temperature, float percentHumidity,
                        bool isFahrenheit);
 void checkBatteryVoltage(struct sensorData *environment);
+
+static const char *SENSOR_INITS_TAG = "SENSOR_INIT";
+static const char *SENSOR_I2C_CONN_TAG = "I2C_INIT";
+static const char *SENSOR_DATA_EVENTS = "SENSOR_DATA";
+static const char *SENSOR_BATTERY_CTL = "BATTERY_CTL";
+static const char *Battery = "LOW_BATTERY_PROBLEM";
+
 #endif

@@ -1,7 +1,11 @@
 {
 	"files.associations": {
 		"*.ino": "cpp",
-		"vector": "cpp"
+		"vector": "cpp",
+		"*.tcc": "cpp",
+		"istream": "cpp",
+		"ostream": "cpp",
+		"typeinfo": "cpp"
 	},
 	"cmake.configureOnOpen": true
 }
