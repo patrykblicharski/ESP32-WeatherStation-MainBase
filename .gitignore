@@ -8,3 +8,5 @@ src/mqttAuth.h
 src/Untitled-1.txt
 
 src/mqtt/mqttAuth.h
+
+src/configs/secrets.h
