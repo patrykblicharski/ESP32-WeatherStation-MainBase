@@ -6,7 +6,7 @@
 #define TIME_TO_SLEEP 900      // in use uS_TO_S_FACTOR*TIME_TO_SLEEP(in sec)
 #define TIME_TO_SLEEP_LOW_BATTERY 1800
 
-#define WDT_TIMEOUT 60 // watchdog timer
+#define WDT_TIMEOUT 190 // watchdog timer
 void print_wakeup_reason();
 
 #define METRIC
@@ -26,6 +26,6 @@ static const char *Deep_Sleep = "ESP_DEEPSLEEP";
 static const char *Watch_dog = "ESP_WATCHDOG";
 static const char *Esp_parms = "ESP_SET_PARMS";
 static const char *Esp_get_parms = "ESP_GET_PARMS";
-
+static const char *Service_Mode = "SERVICE_MODE";
 
 #endif

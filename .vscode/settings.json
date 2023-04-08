@@ -5,7 +5,8 @@
 		"*.tcc": "cpp",
 		"istream": "cpp",
 		"ostream": "cpp",
-		"typeinfo": "cpp"
+		"typeinfo": "cpp",
+		"fstream": "cpp"
 	},
 	"cmake.configureOnOpen": true
 }

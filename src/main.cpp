@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <SPI.h>
-// #include "ArduinoOTA.h"
+#include "ArduinoOTA.h"
 #include <ElegantOTA.h>
 #include <WiFiClient.h>
 #include <WebServer.h>
@@ -23,6 +23,13 @@ WiFiMulti wifiMulti;
 #include <driver/rtc_io.h>
 #include <esp_sleep.h>
 
+// for maint check
+const int httpPort = 1880;
+WiFiClient client;
+bool maintcheck = false;
+void gosleep();
+String maintpayload = "MAINT";
+
 // @@@@@@@ add cpu temperature function
 #ifdef __cplusplus
 extern "C"
@@ -34,7 +41,6 @@ extern "C"
 #endif
 uint8_t temprature_sens_read();
 // @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
 
 // ################################
 //         MQTT
@@ -48,6 +54,8 @@ WebServer server(HttpLogServerPort); // for ota
 PubSubClient mqttClient(wifiClient);
 byte bErrorBMP, bErrorLux, bErrorAHT;
 byte bErrorAll = 0;
+
+int runCount = 0;
 
 void setup()
 {
@@ -156,7 +164,7 @@ void setup()
     Serial.print("# uSERVER HANDLERS #\n");
     Serial.println("####################\n");
     server.on("/", []()
-              { server.send(200, "text/plain", "Hi! I am ESP32. Updated by Blacha Again and again"); });
+              { server.send(200, "text/plain", "Hi! I am ESP32. Updated by Blacha Again and againss"); });
     // NETWORK_uSERVER_HANDLER
 
     ElegantOTA.begin(&server); // Start ElegantOTA
@@ -173,62 +181,106 @@ void setup()
     ESP.restart();
   }
 }
-
 void loop()
 {
-  server.handleClient();                             // Uchwyt serwera HTTP do obslugi klienta
-  env.coreC = ((temprature_sens_read() - 32) / 1.8); // Read cpu temperature and convert to F->C
-  readSensors(&env);                                 // Odczyt sensorów
-  checkBatteryVoltage(&env);                         // Odczyt napięcia
 
-  delay(1000);
+  server.handleClient();
 
-  if (env.batteryVoltage <= batteryLowVoltage)
+  // Uchwyt serwera HTTP do obslugi klienta
+
+  if (runCount == 0)
   {
-    env.lowBattery = 1;
-    ESP_LOGE(Battery, "BATTERY LOW: Measured:%fV !!!!!!!!!!!!!!!", env.batteryVoltage);
+    int len;
+
+    client.stop();
+    if (client.connect(host, httpPort))
     {
-      if (esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP_LOW_BATTERY * uS_TO_S_FACTOR) == ESP_OK)
-        ESP_LOGE(Battery, "BATTERY LOW:DEEP SLEEP SET TO %fsec", TIME_TO_SLEEP_LOW_BATTERY);
+      String url = "/hello.json";
+      client.print(String("GET ") + url + " HTTP/1.1\r\n" + "Host: " + host + "\r\n" + "User-Agent: NodeMCU\r\n" + "Connection: close\r\n\r\n");
+      while (client.connected())
+      {
+        String line = client.readStringUntil('\n'); // HTTP HEADER
+        if (line == "\r")
+          break;
+      }
+      String payload = client.readString(); // payload
+      len = payload.length();
+      String maintdata = (payload.substring(len - 6, len)).substring(0, 5);
+
+      if (maintpayload.equals(maintdata))
+        maintcheck = true;
+    }
+
+    env.coreC = ((temprature_sens_read() - 32) / 1.8); // Read cpu temperature and convert to F->C
+    readSensors(&env);                                 // Odczyt sensorów
+    checkBatteryVoltage(&env);                         // Odczyt napięcia
+
+    delay(1000);
+
+    if (env.batteryVoltage <= batteryLowVoltage)
+    {
+      env.lowBattery = 1;
+      ESP_LOGE(Battery, "BATTERY LOW: Measured:%fV !!!!!!!!!!!!!!!", env.batteryVoltage);
+      {
+        if (esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP_LOW_BATTERY * uS_TO_S_FACTOR) == ESP_OK)
+          ESP_LOGE(Battery, "BATTERY LOW:DEEP SLEEP SET TO %fsec", TIME_TO_SLEEP_LOW_BATTERY);
+      }
+    }
+    else
+      env.lowBattery = 0;
+
+    if (MQTTconnect(mqttClient) == true) // Wysłanie danych przez protokół MQTT
+    {
+
+      float tempC = env.temperatureC;
+      MQTTPublish("TempC", env.temperatureC, false, mqttClient);
+      MQTTPublish("Hum", env.humidity, false, mqttClient);
+      MQTTPublish("TempHum", env.temphum, false, mqttClient);
+      MQTTPublish("HeatIndex", env.HeatIndex, false, mqttClient);
+      MQTTPublish("Preasure", env.PressureSeaLevel, false, mqttClient);
+      MQTTPublish("RelAltitude", env.RelAltitude, false, mqttClient);
+      MQTTPublish("BME", env.BMEtemperature, false, mqttClient);
+      MQTTPublish("Lux", env.lux, false, mqttClient);
+      MQTTPublish("BatteryADC", env.batteryADC, false, mqttClient);
+      MQTTPublish("BatteryVoltage", env.batteryVoltage, false, mqttClient);
+      MQTTPublish("LowBattery", env.lowBattery, false, mqttClient);
+      MQTTPublish("CpuTemp", env.coreC, false, mqttClient);
+
+      led_watchdog_progress_blink(exec_stage::SENT);
+      delay(1000);
+      runCount++;
+    }
+
+    if (maintcheck)
+    {
+      Serial.println("\n");
+      ESP_LOGW(Service_Mode, "Stopped in MAINTENANCE MODE");
+      ESP_LOGW(Service_Mode, "Going to restart after: %i sec.", WDT_TIMEOUT);
+      ESP_LOGI(Network_Wifi_Conn, "IP: %s", WiFi.localIP().toString().c_str());
+    }
+    else
+    {
+      ESP_LOGW(Service_Mode, "Ended in NORMAL MODE, ZzZzZzZzZz....");
+      gosleep();
     }
   }
-  else
-    env.lowBattery = 0;
-
-  if (MQTTconnect(mqttClient) == true) // Wysłanie danych przez protokół MQTT
-  {
-
-    float tempC = env.temperatureC;
-    MQTTPublish("TempC", env.temperatureC, false, mqttClient);
-    MQTTPublish("Hum", env.humidity, false, mqttClient);
-    MQTTPublish("TempHum", env.temphum, false, mqttClient);
-    MQTTPublish("HeatIndex", env.HeatIndex, false, mqttClient);
-    MQTTPublish("Preasure", env.PressureSeaLevel, false, mqttClient);
-    MQTTPublish("RelAltitude", env.RelAltitude, false, mqttClient);
-    MQTTPublish("BME", env.BMEtemperature, false, mqttClient);
-    MQTTPublish("Lux", env.lux, false, mqttClient);
-    MQTTPublish("BatteryADC", env.batteryADC, false, mqttClient);
-    MQTTPublish("BatteryVoltage", env.batteryVoltage, false, mqttClient);
-    MQTTPublish("LowBattery", env.lowBattery, false, mqttClient);
-    MQTTPublish("CpuTemp", env.coreC, false, mqttClient);
-
-    led_watchdog_progress_blink(exec_stage::SENT);
-  }
   delay(1000);
-
+}
+// ##################################################################################################################
+// ##################################################################################################################
+void gosleep()
+{
   ESP_LOGI(Deep_Sleep, "Deep sleep start in 5 sec");
   for (int i = 5; i >= 0; i--)
   {
     led_watchdog_progress_blink(exec_stage::DEEP);
     Serial.println(i);
   }
-
   ESP_LOGI(Deep_Sleep, "Starting Deep sleep!");
-
-  esp_deep_sleep_start(); // Uśpienie układu
+  esp_deep_sleep_start();
 }
-// ##################################################################################################################
-// ##################################################################################################################
+
+
 void print_wakeup_reason()
 {
   esp_sleep_wakeup_cause_t wakeup_reason = esp_sleep_get_wakeup_cause();
