@@ -138,7 +138,7 @@ void readSensors(struct sensorData *environment)
         environment->temperatureC = temp.temperature;
         environment->humidity = humidity.relative_humidity;
         environment->HeatIndex = computeHeatIndex(temp.temperature, humidity.relative_humidity, false);
-        sprintf_P(environment->temphum, PSTR("%.02f;%.02f"), environment->temperatureC, environment->humidity);
+        sprintf_P(environment->temphum, PSTR("%.02f;%i"), environment->temperatureC, environment->humidity);
         ESP_LOGI(SENSOR_DATA_EVENTS, "SENSOR:ATH20X: Temp:%fC Hum:%f %  HeatIndex:%f", environment->temperatureC, environment->humidity, environment->HeatIndex);
     }
     if (exist.bmp == 1) // bmp180

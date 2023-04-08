@@ -25,12 +25,12 @@ struct sensorStatus
 struct sensorData
 {
   float temperatureC;
-  float humidity;
+  int humidity;
   char temphum[30];
   // float windSpeed;
   // float windDirection;
   // char windCardinalDirection[5];
-  float HeatIndex;
+  int HeatIndex;
   float Pressure;
   float PressureSeaLevel;
   float BMEtemperature;
