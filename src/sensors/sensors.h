@@ -3,7 +3,6 @@
 
 #include <Arduino.h>
 #include <BH1750.h>
-#include <Adafruit_BMP085.h>
 #include <Adafruit_AHTX0.h>
 #include "configs/sensors_conf.h"
 
@@ -41,7 +40,7 @@ struct sensorData
   float batteryVoltage;
   int batteryADC;
   int lowBattery;
-  unsigned int coreC;
+  float coreC;
 };
 
 bool checkI2cTransmission(int address, bool *setStatus);

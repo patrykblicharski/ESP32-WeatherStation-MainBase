@@ -23,6 +23,19 @@ WiFiMulti wifiMulti;
 #include <driver/rtc_io.h>
 #include <esp_sleep.h>
 
+// @@@@@@@ add cpu temperature function
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+  uint8_t temprature_sens_read();
+#ifdef __cplusplus
+}
+#endif
+uint8_t temprature_sens_read();
+// @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+
 // ################################
 //         MQTT
 // #################################
@@ -38,6 +51,8 @@ byte bErrorAll = 0;
 
 void setup()
 {
+  esp_log_level_set("*", ESP_LOG_DEBUG);
+
   digitalWrite(19, HIGH);
   byte error, address;
   int nDevices;
@@ -47,19 +62,11 @@ void setup()
 
   led_watchdog_progress_blink(exec_stage::WATCHDOG);
 
-  esp_log_level_set("*", ESP_LOG_DEBUG);
-
   Wire.begin();
 
   Serial.print("\n#################\n");
   Serial.print("  ## WATCHDOG ##\n");
   Serial.println("#################\n");
-  //
-  //
-  // LedBlink2(LED_BUSY_PIN,3,0,500);
-  //
-  //
-  //
 
   print_wakeup_reason();
 
@@ -119,16 +126,6 @@ void setup()
 
   led_watchdog_progress_blink(exec_stage::I2CSCAN);
 
-  // ESP_LOGE("I2C device list scan", "Nie wszystkie czujniki sa gotowe, go next part...");
-
-  // scan_wifi();
-  // bool wifiStatus =setup_multi_wifi(mWifiPASS,mWifiPASS);
-  //
-  //
-  // LedBlink2(LED_READY_PIN,5,0,300);
-  //
-  //
-  //
   Serial.print("\n#####################\n");
   Serial.print("  ## MULTIWIFI SETUP ##\n");
   Serial.println("#####################\n");
@@ -179,9 +176,12 @@ void setup()
 
 void loop()
 {
-  server.handleClient();     // Uchwyt serwera HTTP do obslugi klienta
-  readSensors(&env);         // Odczyt sensorów
-  checkBatteryVoltage(&env); // Odczyt napięcia
+  server.handleClient();                             // Uchwyt serwera HTTP do obslugi klienta
+  env.coreC = ((temprature_sens_read() - 32) / 1.8); // Read cpu temperature and convert to F->C
+  readSensors(&env);                                 // Odczyt sensorów
+  checkBatteryVoltage(&env);                         // Odczyt napięcia
+
+  delay(1000);
 
   if (env.batteryVoltage <= batteryLowVoltage)
   {
@@ -193,9 +193,7 @@ void loop()
     }
   }
   else
-  {
     env.lowBattery = 0;
-  }
 
   if (MQTTconnect(mqttClient) == true) // Wysłanie danych przez protokół MQTT
   {
@@ -206,11 +204,13 @@ void loop()
     MQTTPublish("TempHum", env.temphum, false, mqttClient);
     MQTTPublish("HeatIndex", env.HeatIndex, false, mqttClient);
     MQTTPublish("Preasure", env.PressureSeaLevel, false, mqttClient);
+    MQTTPublish("RelAltitude", env.RelAltitude, false, mqttClient);
     MQTTPublish("BME", env.BMEtemperature, false, mqttClient);
     MQTTPublish("Lux", env.lux, false, mqttClient);
     MQTTPublish("BatteryADC", env.batteryADC, false, mqttClient);
     MQTTPublish("BatteryVoltage", env.batteryVoltage, false, mqttClient);
     MQTTPublish("LowBattery", env.lowBattery, false, mqttClient);
+    MQTTPublish("CpuTemp", env.coreC, false, mqttClient);
 
     led_watchdog_progress_blink(exec_stage::SENT);
   }

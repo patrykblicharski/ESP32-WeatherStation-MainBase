@@ -1,9 +1,8 @@
 #include "sensors.h"
 #include <Arduino.h>
-// #include "globals.h"
+ 
 
-// Adafruit_BMP085 bmp;
-
+ 
 SFE_BMP180 bmp180;
 Adafruit_AHTX0 aht;
 BH1750 bh_lux;
@@ -12,7 +11,6 @@ sensorExist exist;
 
 float a, b, hi, preasureDiv, lux;
 int32_t preasure;
-
 
 extern "C"
 {
@@ -82,15 +80,7 @@ bool checkI2cTransmission(int address, bool *setStatus)
 
 void sensorCheck(void)
 {
-    // BME180 sensor
-    // if ((BMP180Enable) && checkI2cTransmission(BMP180_ADDRESS, &exist.bmp))
-    // {
-    //     status.bmp = bmp.begin();
-    //     ESP_LOGI(SENSOR_INITS_TAG, "# BME280 # status.exist=%i status.begin()=%i #", exist.bmp, status.bmp);
-    // }
-    // else
-    //     ESP_LOGE(SENSOR_INITS_TAG, "# BME280 # status.exist=%i status.begin()=%i #", exist.bmp, status.bmp);
-
+ 
     if ((BMP180Enable) && checkI2cTransmission(BMP180_ADDRESS, &exist.bmp))
     {
         status.bmp = bmp180.begin();
@@ -128,12 +118,10 @@ void checkBatteryVoltage(struct sensorData *environment)
     Serial.println("#####################\n");
 
     ESP_LOGI(SENSOR_BATTERY_CTL, "Battery probing");
-    environment->batteryADC = analogRead(BATTERY_PIN); 
+    environment->batteryADC = analogRead(BATTERY_PIN);
     environment->batteryVoltage = environment->batteryADC * batteryCalFactor;
     ESP_LOGI(SENSOR_BATTERY_CTL, "Battery: ADC:%i Voltage:%f", environment->batteryADC, environment->batteryVoltage);
     Serial.println();
-
-
 }
 
 void readSensors(struct sensorData *environment)
@@ -178,7 +166,7 @@ void readSensors(struct sensorData *environment)
                     {
 
                         environment->PressureSeaLevel = bmp180.sealevel(preasure, ALTITUDE); // GET PREASURE according to ALTITUDE
-                        environment->RelAltitude = bmp180.altitude(preasure, preasure_sea);  // GET Altitude from subtraction between preasure on sea level and relative
+                        environment->RelAltitude = bmp180.altitude(preasure, environment->PressureSeaLevel);  // GET Altitude from subtraction between preasure on sea level and relative
                     }
                     else
                         ESP_LOGE(SENSOR_DATA_EVENTS, "SENSOR:BME180: Step4 : error #retrieving pressure# measurement");
@@ -194,15 +182,6 @@ void readSensors(struct sensorData *environment)
 
         ESP_LOGI(SENSOR_DATA_EVENTS, "SENSOR:BME180: Temp:%fC Preasure:%f %  Relative altitude:%f", environment->BMEtemperature, environment->PressureSeaLevel, environment->RelAltitude);
     }
-
-    /* //OLD LIB
-    environment->BMEtemperature = bmp.readTemperature();
-    ESP_LOGI(SENSOR_DATA_EVENTS, "SENSOR:BMP180: Found! Request for data ...");
-    preasureDiv = bmp.readPressure() / 100.0;
-    environment->barometricPressure = preasureDiv;
-    environment->barometricSeaLevelPressure = (bmp.readSealevelPressure() / 100.0);
-    ESP_LOGI(SENSOR_DATA_EVENTS, "SENSOR:BMP180: BMETemp:%fC Preasure:%fHPa SeaLevelPreasure:%fHPa");
-    */
 
     if (exist.lux == 1)
     {
