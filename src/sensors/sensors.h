@@ -24,8 +24,11 @@ struct sensorStatus
 };
 struct sensorData
 {
+  String ip;
+  float RSSI;
   float temperatureC;
-  int humidity;
+  float humidity;
+  float dewpoint;
   char temphum[30];
   // float windSpeed;
   // float windDirection;
@@ -41,6 +44,7 @@ struct sensorData
   int batteryADC;
   int lowBattery;
   float coreC;
+  bool maint_mode;
 };
 
 bool checkI2cTransmission(int address, bool *setStatus);
@@ -51,6 +55,10 @@ void testsensor(void);
 
 float convertFtoC(float f);
 float convertCtoF(float c);
+
+double dewPointFast(double celsius, double humidity);
+double computeDewPoint2(double celsius, double humidity);
+
 float computeHeatIndex(float temperature, float percentHumidity,
                        bool isFahrenheit);
 void checkBatteryVoltage(struct sensorData *environment);

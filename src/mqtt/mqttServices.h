@@ -12,6 +12,6 @@ void MQTTPublish(const char topic[], int value, bool retain, PubSubClient &mqttC
 void MQTTPublish(const char topic[], long value, bool retain, PubSubClient &mqttClient); //  MQTTPublish Long
 void MQTTPublish(const char topic[], float value, bool retain, PubSubClient &mqttClient); //  MQTTPublishFloat
 void MQTTPublish(const char topic[], bool value, bool retain, PubSubClient &mqttClient); //  MQTTPublishBool
-
+void MQTTPublish(const char topic[], String value, bool retain, PubSubClient &mqttClient);
 
  #endif

@@ -70,6 +70,20 @@ void MQTTSend(char *topicBuffer, char *payload, bool retain, PubSubClient &mqttC
   }
 }
 
+void MQTTPublish(const char topic[], String value, bool retain, PubSubClient &mqttClient)
+{
+  char topicBuffer[256];
+  char payload[256];
+
+  strcpy(topicBuffer, mainTopic);
+  strcat(topicBuffer, topic);
+  if (!mqttClient.connected())
+    MQTTconnect(mqttClient);
+  mqttClient.loop();
+  sprintf(payload, "%s", value);
+  MQTTSend(topicBuffer, payload, retain, mqttClient);
+}
+
 void MQTTPublish(const char topic[], char *value, bool retain, PubSubClient &mqttClient)
 {
   char topicBuffer[256];

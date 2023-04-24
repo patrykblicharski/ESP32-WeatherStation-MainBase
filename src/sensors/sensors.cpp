@@ -1,8 +1,6 @@
 #include "sensors.h"
 #include <Arduino.h>
- 
 
- 
 SFE_BMP180 bmp180;
 Adafruit_AHTX0 aht;
 BH1750 bh_lux;
@@ -20,6 +18,31 @@ extern "C"
 float convertFtoC(float f) { return (f - 32) * 0.55555; }
 
 float convertCtoF(float c) { return c * 1.8 + 32; }
+
+double computeDewPoint2(double celsius, double humidity)
+{
+    double RATIO = 373.15 / (273.15 + celsius); // RATIO was originally named A0, possibly confusing in Arduino context
+    double SUM = -7.90298 * (RATIO - 1);
+    SUM += 5.02808 * log10(RATIO);
+    SUM += -1.3816e-7 * (pow(10, (11.344 * (1 - 1 / RATIO))) - 1);
+    SUM += 8.1328e-3 * (pow(10, (-3.49149 * (RATIO - 1))) - 1);
+    SUM += log10(1013.246);
+    double VP = pow(10, SUM - 3) * humidity;
+    double T = log(VP / 0.61078); // temp var
+    return (241.88 * T) / (17.558 - T);
+}
+
+// delta max = 0.6544 wrt dewPoint()
+// 5x faster than dewPoint()
+// reference: http://en.wikipedia.org/wiki/Dew_point
+double dewPointFast(double celsius, double humidity)
+{
+    double a = 17.271;
+    double b = 237.7;
+    double temp = (a * celsius) / (b + celsius) + log(humidity * 0.01);
+    double Td = (b * temp) / (a - temp);
+    return Td;
+}
 
 float computeHeatIndex(float temperature, float percentHumidity,
                        bool isFahrenheit)
@@ -80,7 +103,7 @@ bool checkI2cTransmission(int address, bool *setStatus)
 
 void sensorCheck(void)
 {
- 
+
     if ((BMP180Enable) && checkI2cTransmission(BMP180_ADDRESS, &exist.bmp))
     {
         status.bmp = bmp180.begin();
@@ -138,7 +161,8 @@ void readSensors(struct sensorData *environment)
         environment->temperatureC = temp.temperature;
         environment->humidity = humidity.relative_humidity;
         environment->HeatIndex = computeHeatIndex(temp.temperature, humidity.relative_humidity, false);
-        sprintf_P(environment->temphum, PSTR("%.02f;%i"), environment->temperatureC, environment->humidity);
+        environment->dewpoint = dewPointFast(environment->temperatureC, environment->humidity);
+        sprintf_P(environment->temphum, PSTR("%.02f;%f"), environment->temperatureC, environment->humidity);
         ESP_LOGI(SENSOR_DATA_EVENTS, "SENSOR:ATH20X: Temp:%fC Hum:%f %  HeatIndex:%f", environment->temperatureC, environment->humidity, environment->HeatIndex);
     }
     if (exist.bmp == 1) // bmp180
@@ -165,8 +189,8 @@ void readSensors(struct sensorData *environment)
                     if (checkpoint != 0)
                     {
 
-                        environment->PressureSeaLevel = bmp180.sealevel(preasure, ALTITUDE); // GET PREASURE according to ALTITUDE
-                        environment->RelAltitude = bmp180.altitude(preasure, environment->PressureSeaLevel);  // GET Altitude from subtraction between preasure on sea level and relative
+                        environment->PressureSeaLevel = bmp180.sealevel(preasure, ALTITUDE);                 // GET PREASURE according to ALTITUDE
+                        environment->RelAltitude = bmp180.altitude(preasure, environment->PressureSeaLevel); // GET Altitude from subtraction between preasure on sea level and relative
                     }
                     else
                         ESP_LOGE(SENSOR_DATA_EVENTS, "SENSOR:BME180: Step4 : error #retrieving pressure# measurement");
