@@ -27,8 +27,9 @@ struct sensorData
   String ip;
   float RSSI;
   float temperatureC;
-  float humidity;
-  float dewpoint;
+  int humidity;
+                    float dewpoint1; //debug
+                    float dewpoint2; //
   char temphum[30];
   // float windSpeed;
   // float windDirection;

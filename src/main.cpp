@@ -259,7 +259,8 @@ void loop()
             MQTTPublish("Wifi_RSSI", env.RSSI, false, mqttClient);
             MQTTPublish("TempC", env.temperatureC, false, mqttClient);
             MQTTPublish("Hum", env.humidity, false, mqttClient);
-            MQTTPublish("Dewpoint", env.dewpoint, false, mqttClient);
+            MQTTPublish("dewPointFast", env.dewpoint1, false, mqttClient);
+            MQTTPublish("computeDewPoint2", env.dewpoint2, false, mqttClient);
             MQTTPublish("TempHum", env.temphum, false, mqttClient);
             MQTTPublish("HeatIndex", env.HeatIndex, false, mqttClient);
             MQTTPublish("Preasure", env.PressureSeaLevel, false, mqttClient);

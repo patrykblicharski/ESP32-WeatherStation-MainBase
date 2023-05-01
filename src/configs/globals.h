@@ -3,7 +3,7 @@
 
 // Timer for deepsleep
 #define uS_TO_S_FACTOR 1000000 /* Conversion factor for micro seconds to seconds */
-#define TIME_TO_SLEEP 300      // in use uS_TO_S_FACTOR*TIME_TO_SLEEP(in sec)
+#define TIME_TO_SLEEP 600      // in use uS_TO_S_FACTOR*TIME_TO_SLEEP(in sec)
 #define TIME_TO_SLEEP_LOW_BATTERY 1800
 
 #define WDT_TIMEOUT 190 // watchdog timer

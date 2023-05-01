@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include "network.h"
 
-IPAddress local_IP(192, 168, 1, 57);
+IPAddress local_IP(192, 168, 1, 15);
 IPAddress gateway(192, 168, 1, 1);
 IPAddress subnet(255, 255, 255, 0);
 
